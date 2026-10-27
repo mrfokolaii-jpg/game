@@ -1,0 +1,298 @@
+/* ───────────────────────── پایه و متغیرها ───────────────────────── */
+:root {
+  --grad: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --line: #e9ebf2;
+  --primary: #7c3aed;
+  --primary-dark: #6d28d9;
+  --green: #10b981;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --blue: #3b82f6;
+  --radius: 16px;
+  --shadow: 0 8px 30px rgba(17, 24, 39, 0.07);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Tahoma, "Segoe UI", "Iran Sans", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.app { display: flex; min-height: 100vh; }
+.hidden { display: none !important; }
+
+/* ───────────────────────── سایدبار ───────────────────────── */
+.sidebar {
+  width: 264px;
+  background: #14111f;
+  color: #e8e6f0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 22px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.brand-logo {
+  width: 46px; height: 46px; border-radius: 14px;
+  background: var(--grad);
+  display: grid; place-items: center;
+  font-weight: 800; color: #fff; font-size: 15px;
+}
+.brand-name { font-weight: 700; font-size: 15px; }
+.brand-sub { font-size: 11px; color: #9b96ad; }
+
+.nav { display: flex; flex-direction: column; gap: 6px; margin-top: 20px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: 0; color: #b9b4c9;
+  font: inherit; text-align: right;
+  padding: 12px 14px; border-radius: 12px; cursor: pointer;
+  transition: .18s;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.nav-item.active { background: var(--grad); color: #fff; font-weight: 700; box-shadow: 0 6px 18px rgba(124,58,237,.35); }
+.nav-ico { font-size: 17px; }
+
+.badge {
+  margin-right: auto;
+  background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 700;
+  min-width: 20px; height: 20px; border-radius: 10px;
+  display: grid; place-items: center; padding: 0 6px;
+}
+
+.sidebar-footer { border-top: 1px solid rgba(255,255,255,.08); padding-top: 16px; }
+.mode-badge { font-size: 12px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,.07); text-align: center; color: #cfcbe0; }
+.mode-badge.arena { background: rgba(16,185,129,.18); color: #6ee7b7; }
+.mode-badge.local { background: rgba(245,158,11,.18); color: #fcd34d; }
+
+/* ───────────────────────── تاپ‌بار و محتوا ───────────────────────── */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  background: rgba(255,255,255,.85); backdrop-filter: blur(10px);
+  padding: 18px 30px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20;
+}
+.topbar h1 { font-size: 19px; }
+.conn-badge {
+  font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 999px;
+  background: #f3f4f6; color: var(--muted);
+}
+.conn-badge.ok { background: #dcfce7; color: #065f46; }
+.conn-badge.demo { background: #fef3c7; color: #92400e; }
+
+.view { padding: 28px 30px 60px; max-width: 1180px; width: 100%; margin: 0 auto; }
+
+/* ───────────────────────── کارت‌ها و گرید ───────────────────────── */
+.grid { display: grid; gap: 18px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
+}
+.card h3 { font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.card .hint { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+
+.stat { text-align: center; }
+.stat .num { font-size: 26px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat .lbl { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+
+/* ───────────────────────── فرم‌ها ───────────────────────── */
+label.field { display: block; margin-bottom: 14px; }
+label.field span { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
+input, select, textarea {
+  width: 100%; padding: 11px 14px; border: 1px solid var(--line);
+  border-radius: 11px; font: inherit; background: #fbfbfe; color: var(--text);
+  outline: none; transition: .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,.12); background: #fff; }
+textarea { resize: vertical; min-height: 96px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 0; border-radius: 12px; padding: 12px 22px;
+  font: inherit; font-weight: 700; cursor: pointer; transition: .18s;
+}
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--grad); color: #fff; box-shadow: 0 6px 18px rgba(124,58,237,.3); }
+.btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-ghost { background: #f3f4f6; color: var(--text); }
+.btn-ghost:hover { background: #e9ebf2; }
+.btn-danger { background: #fee2e2; color: #b91c1c; }
+.btn-sm { padding: 8px 14px; font-size: 12.5px; border-radius: 9px; }
+.icon-btn { background: none; border: 0; font-size: 16px; cursor: pointer; color: inherit; }
+
+/* ───────────────────────── تب‌ها ───────────────────────── */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.tab {
+  padding: 9px 18px; border-radius: 999px; border: 1px solid var(--line);
+  background: #fff; cursor: pointer; font: inherit; font-weight: 700; color: var(--muted);
+}
+.tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* ───────────────────────── نشان‌ها ───────────────────────── */
+.pill { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
+.pill.green { background: #dcfce7; color: #065f46; }
+.pill.amber { background: #fef3c7; color: #92400e; }
+.pill.blue { background: #dbeafe; color: #1e40af; }
+.pill.gray { background: #f3f4f6; color: #4b5563; }
+.pill.red { background: #fee2e2; color: #991b1b; }
+.pill.purple { background: #ede9fe; color: #5b21b6; }
+
+/* ───────────────────────── جدول ───────────────────────── */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 10px; text-align: right; border-bottom: 1px solid var(--line); font-size: 13px; }
+th { color: var(--muted); font-size: 12px; white-space: nowrap; }
+tr:hover td { background: #fafaff; }
+
+/* ───────────────────────── پروفایل و رسانه ───────────────────────── */
+.profile-head { display: flex; align-items: center; gap: 18px; }
+.avatar {
+  width: 74px; height: 74px; border-radius: 50%;
+  background: var(--grad); display: grid; place-items: center;
+  color: #fff; font-size: 26px; font-weight: 800; flex-shrink: 0;
+}
+.profile-head h2 { font-size: 18px; }
+.profile-head .handle { color: var(--muted); font-size: 13px; }
+.profile-head .bio { margin-top: 8px; font-size: 13px; white-space: pre-line; }
+
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.media-item { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.media-item img { width: 100%; height: 140px; object-fit: cover; display: block; }
+.media-item .cap { padding: 8px 10px; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-placeholder { height: 140px; display: grid; place-items: center; font-size: 34px; background: linear-gradient(135deg,#ede9fe,#fce7f3); }
+
+/* ───────────────────────── خروجی محتوا ───────────────────────── */
+.output-box {
+  background: #fbfaff; border: 1px dashed #d6cff0; border-radius: 12px;
+  padding: 16px; white-space: pre-wrap; font-size: 13.5px; margin-top: 12px;
+}
+.tag-chip {
+  display: inline-block; background: #ede9fe; color: #5b21b6;
+  padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  margin: 3px; cursor: pointer;
+}
+.tag-chip:hover { background: #ddd6fe; }
+.copy-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+
+/* ───────────────────────── چت دایرکت ───────────────────────── */
+.dm-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; min-height: 520px; }
+.thread-list { border-left: 1px solid var(--line); padding-left: 0; }
+.thread {
+  padding: 13px 14px; border-radius: 12px; cursor: pointer; margin-bottom: 6px;
+  border: 1px solid transparent;
+}
+.thread:hover { background: #fafaff; }
+.thread.active { background: #f5f3ff; border-color: #ddd6fe; }
+.thread .t-name { font-weight: 700; font-size: 13.5px; display: flex; justify-content: space-between; align-items: center; }
+.thread .t-handle { color: var(--muted); font-size: 11.5px; }
+.thread .t-preview { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.dot-unread { width: 9px; height: 9px; border-radius: 50%; background: var(--red); display: inline-block; }
+
+.chat-conv { display: flex; flex-direction: column; min-height: 480px; }
+.conv-body { flex: 1; overflow-y: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 10px; max-height: 440px; }
+.bubble { max-width: 72%; padding: 10px 14px; border-radius: 16px; font-size: 13px; }
+.bubble.them { background: #f3f4f6; align-self: flex-start; border-bottom-right-radius: 4px; }
+.bubble.me { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-left-radius: 4px; }
+.bubble .time { display: block; font-size: 10px; opacity: .65; margin-top: 4px; }
+.conv-actions { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 12px; }
+.suggest-box { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; font-size: 12.5px; }
+.suggest-box .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.reply-form { display: flex; gap: 10px; }
+.reply-form input { flex: 1; }
+
+/* ───────────────────────── ویجت چت ایجنت ───────────────────────── */
+.chat-fab {
+  position: fixed; bottom: 26px; left: 26px; z-index: 50;
+  width: 58px; height: 58px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--grad); color: #fff; font-size: 24px;
+  box-shadow: 0 10px 28px rgba(124,58,237,.45);
+}
+.chat-panel {
+  position: fixed; bottom: 94px; left: 26px; z-index: 50;
+  width: 380px; max-width: calc(100vw - 40px); height: 500px;
+  background: #fff; border-radius: 18px; box-shadow: 0 20px 60px rgba(17,24,39,.25);
+  display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid var(--line);
+}
+.chat-head { background: #14111f; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+.chat-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #fafaff; }
+.chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+.chat-form input { flex: 1; }
+
+/* ───────────────────────── صفحه اتصال ───────────────────────── */
+.connect-hero { text-align: center; padding: 30px 10px; }
+.connect-hero .big-ico { font-size: 56px; margin-bottom: 14px; }
+.connect-hero h2 { font-size: 22px; margin-bottom: 10px; }
+.connect-hero p { color: var(--muted); max-width: 620px; margin: 0 auto 22px; }
+.steps { text-align: right; max-width: 640px; margin: 0 auto; }
+.steps li { margin-bottom: 10px; list-style: none; position: relative; padding-right: 30px; }
+.steps li::before {
+  content: counter(step); counter-increment: step;
+  position: absolute; right: 0; top: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--grad); color: #fff; font-size: 11px; font-weight: 700;
+  display: grid; place-items: center;
+}
+.steps { counter-reset: step; }
+
+.security-note {
+  background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px;
+  padding: 16px 18px; font-size: 12.5px; margin-top: 18px; text-align: right;
+}
+.security-note b { color: #92400e; }
+
+/* ───────────────────────── تست و توست ───────────────────────── */
+.toast {
+  position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
+  background: #111827; color: #fff; padding: 12px 24px; border-radius: 12px;
+  z-index: 100; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  animation: slideDown .25s ease;
+}
+.toast.error { background: #b91c1c; }
+.toast.success { background: #047857; }
+@keyframes slideDown { from { opacity: 0; transform: translate(-50%, -14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+.loader {
+  width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4);
+  border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty { text-align: center; color: var(--muted); padding: 40px 10px; font-size: 13px; }
+.section-gap { margin-top: 22px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mono { font-family: ui-monospace, monospace; direction: ltr; text-align: left; display: inline-block; }
+.small { font-size: 12px; color: var(--muted); }
+
+/* ───────────────────────── واکنش‌گرا ───────────────────────── */
+@media (max-width: 980px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .dm-layout { grid-template-columns: 1fr; }
+  .thread-list { border-left: 0; max-height: 260px; overflow-y: auto; }
+}
+@media (max-width: 720px) {
+  .app { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: static; flex-direction: column; }
+  .nav { flex-direction: row; overflow-x: auto; }
+  .nav-item { white-space: nowrap; }
+  .view { padding: 18px 14px 50px; }
+  .topbar { padding: 14px 16px; }
+}
