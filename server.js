@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config, isDemoMode } from './src/config.js';
-import { loadDB } from './src/store.js';
+import { loadDB, saveNow } from './src/store.js';
 import { sessionMiddleware } from './src/middleware/session.js';
 import connectRoutes from './src/routes/connect.js';
 import studioRoutes from './src/routes/studio.js';
@@ -48,3 +48,11 @@ app.listen(config.port, '0.0.0.0', () => {
   console.log(`  آدرس: ${config.appUrl || 'http://localhost:' + config.port}`);
   console.log('──────────────────────────────────────────────');
 });
+
+// ذخیره‌سازی نهایی هنگام خاموش‌شدن
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => {
+    saveNow();
+    process.exit(0);
+  });
+}
