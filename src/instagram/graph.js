@@ -6,11 +6,12 @@ import { graphBase } from '../config.js';
  * همه‌ی فراخوانی‌ها با توکن صفحه (Page Token) و روی حساب BUSINESS/CREATOR انجام می‌شوند.
  */
 export class InstagramGraphClient {
-  constructor({ igAccountId, pageId, pageToken, userToken }) {
+  constructor({ igAccountId, pageId, pageToken, userToken, username }) {
     this.igAccountId = igAccountId;
     this.pageId = pageId;
     this.pageToken = pageToken;
     this.userToken = userToken;
+    this.username = username || '';
   }
 
   async #get(path, params = {}) {
@@ -110,6 +111,28 @@ export class InstagramGraphClient {
       recipient: { id: recipientId },
       message: { text },
     });
+  }
+
+  // نسخه نرمال‌شده سازگار با InstagramLoginClient
+  async listThreads() {
+    const data = await this.getConversations();
+    return (data.data || []).map((c) => ({
+      id: c.id,
+      participant: c.participants?.data?.map((p) => p.name || p.username || p.id).join(', ') || 'گفتگو',
+      handle: '@' + (c.participants?.data?.[0]?.username || 'instagram_user'),
+      participantId: c.participants?.data?.[0]?.id,
+      messages: (c.messages?.data || []).map((m) => ({
+        id: m.id,
+        from: m.from?.username === this.username ? 'me' : 'them',
+        text: m.message,
+        at: m.created_time,
+      })),
+      unread: 0,
+    }));
+  }
+
+  async sendText(thread, text) {
+    return this.sendMessage(thread?.participantId || thread?.id, text);
   }
 
   // ─── جستجوی هشتگ (کشف مشتری) ────────────────────────────────

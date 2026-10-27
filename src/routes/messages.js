@@ -21,19 +21,7 @@ router.get('/', async (req, res, next) => {
       return res.json({ threads: getDB().threads, mode: 'demo' });
     }
     const client = getClient();
-    const data = await client.getConversations();
-    const threads = (data.data || []).map((c) => ({
-      id: c.id,
-      participant: c.participants?.data?.map((p) => p.name || p.id).join(', ') || 'گفتگو',
-      handle: '@instagram_user',
-      messages: (c.messages?.data || []).map((m) => ({
-        id: m.id,
-        from: m.from?.username === conn.profile.username ? 'me' : 'them',
-        text: m.message,
-        at: m.created_time,
-      })),
-      unread: 0,
-    }));
+    const threads = await client.listThreads();
     res.json({ threads, mode: 'real' });
   } catch (e) { next(e); }
 });
@@ -64,7 +52,7 @@ router.post('/:id/reply', async (req, res, next) => {
 
     if (conn.mode === 'real') {
       const client = getClient();
-      await client.sendMessage(thread.participantId || thread.id, text);
+      await client.sendText(thread, text);
     }
     thread.messages.push({ id: uid('msg'), from: 'me', text: text.trim(), at: new Date().toISOString() });
     thread.unread = 0;

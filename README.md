@@ -22,18 +22,26 @@
 | 🤖 ایجنت Arena | اتصال به اندپوینت `https://arena.ai/agent` با کلید API؛ در نبود کلید، موتور محلی فارسی فعال است |
 | 🖼️ کتابخانه رسانه | آپلود تصویر و تولید پوستر، ذخیره روی سرور |
 
-## ⚠️ چرا فرم یوزرنیم/پسورد نداریم؟ (مهم)
+## 🔐 احراز هویت: ورود واقعی اینستاگرام، بدون فیسبوک
 
-اینستاگرام (طبق قوانین Meta) ورود با نام کاربری و رمز عبور در ابزارهای شخص ثالث را ممنوع کرده است:
+پروژه از جریان رسمی **Instagram API with Instagram Login** استفاده می‌کند: کاربر روی دکمه ورود می‌زند،
+به صفحه رسمی `instagram.com` منتقل می‌شود و همان‌جا با **یوزرنیم و پسورد خود اینستاگرام** وارد می‌شود
+(نیازی به حساب/صفحه فیسبوک نیست). سه روش اتصال پشتیبانی می‌شود:
 
-- ابزارهایی که رمز اینستاگرام می‌گیرند (ربات‌های غیررسمی مثل کتابخانه‌های موبایل‌محور) باعث
-  **مسدود یا حذف دائمی پیج** می‌شوند.
-- ذخیره رمز، ریسک امنیتی جدی برای کاربران دارد.
-- تنها مسیر رسمی و امن، **OAuth از طریق فیسبوک** است که در این پروژه پیاده‌سازی شده؛ رمز شما
-  هرگز وارد این سیستم نمی‌شود و فقط توکن دسترسی روی سرور خودتان نگهداری می‌شود.
+1. **ورود مستقیم اینستاگرام (پیشنهادی)** — OAuth کامل روی `www.instagram.com/oauth/authorize`؛
+   توکن بلندمدت ۶۰ روزه خودکار تمدید می‌شود.
+2. **توکن دستی** — تولید توکن از داشبورد Meta و الصاق آن در وب‌اپ (ساده‌ترین روش برای اتصال حساب خودتان).
+3. **Facebook Login** — جریان قدیمی‌تر برای حساب‌های متصل به صفحه فیسبوک (همچنان پشتیبانی می‌شود).
 
-محدودیت‌های API رسمی: دنبال‌کردن انبوه، لایک انبوه، اسکرپ فالوورها و پیام گروهی خودکار امکان‌پذیر نیست
-و هر کسی ادعای این کارها را بکند، از مسیرهای غیرمجاز استفاده می‌کند.
+### چرا فرم یوزرنیم/پسورد داخل همین سایت نداریم؟
+
+- رمز شما باید فقط روی سرورهای خود اینستاگرام وارد شود؛ صفحه ورود رسمی اینستاگرام همین تضمین را می‌دهد.
+- ابزارهایی که رمز را در فرم خودشان می‌گیرند (ربات‌های غیررسمی مبتنی بر مهندسی معکوس) خلاف قوانین Meta‌اند
+  و باعث **مسدود یا حذف دائمی پیج** می‌شوند.
+- در این پروژه رمز هرگز ذخیره نمی‌شود؛ فقط توکن دسترسی رسمی روی سرور خودتان نگهداری می‌گردد.
+
+محدودیت‌های API رسمی: دنبال‌کردن انبوه، لایک انبوه، اسکرپ فالوورها و پیام گروهی خودکار در هیچ مسیر رسمی‌ای
+وجود ندارد و هر کسی ادعای این کارها را بکند، از مسیرهای غیرمجاز استفاده می‌کند.
 
 ## 🚀 شروع سریع (حالت دمو، بدون نیاز به اعتبارنامه)
 
@@ -49,8 +57,9 @@ npm start
 
 پیش‌نیازها:
 
-1. یک حساب **تجاری (Business) یا سازنده (Creator)** اینستاگرام که به یک صفحه فیسبوک متصل باشد.
-2. یک App در [developers.facebook.com](https://developers.facebook.com) از نوع Business.
+1. یک حساب **حرفه‌ای (Business یا Creator)** اینستاگرام (تبدیل حساب از داخل خود اپ، رایگان).
+2. یک App در [developers.facebook.com](https://developers.facebook.com) از نوع Business با محصول
+   **Instagram → API Setup with Instagram Login**.
 
 سپس فایل `.env` را بسازید (نمونه: [`.env.example`](.env.example)):
 
@@ -99,8 +108,9 @@ docker run -p 3000:3000 --env-file .env -v $(pwd)/data:/app/data instagram-conta
 │   ├── store.js              # ذخیره‌سازی JSON (توکن‌ها، سرنخ‌ها، تاریخچه)
 │   ├── middleware/session.js # سشن بدون وابستگی خارجی
 │   ├── instagram/
-│   │   ├── oauth.js          # جریان رسمی OAuth فیسبوک
-│   │   ├── graph.js          # کلاینت Instagram Graph API
+│   │   ├── ig-client.js      # ورود مستقیم اینستاگرام (OAuth + کلاینت graph.instagram.com)
+│   │   ├── oauth.js          # جریان جایگزین OAuth فیسبوک
+│   │   ├── graph.js          # کلاینت Graph روی graph.facebook.com
 │   │   ├── mock.js           # داده‌های حالت دمو
 │   │   └── index.js          # سیم‌کشی اتصال و داشبورد
 │   ├── ai/
@@ -115,8 +125,11 @@ docker run -p 3000:3000 --env-file .env -v $(pwd)/data:/app/data instagram-conta
 
 ## 📡 مهم‌ترین endpointها
 
-- `GET  /api/instagram/status` · `POST /api/instagram/demo` · `GET /api/instagram/oauth-url`
-- `GET  /api/instagram/callback` · `POST /api/instagram/disconnect`
+- `GET  /api/instagram/status` · `GET /api/instagram/setup-check` · `POST /api/instagram/demo`
+- `GET  /api/instagram/ig-oauth-url` · `GET  /api/instagram/ig-callback` (ورود مستقیم اینستاگرام)
+- `POST /api/instagram/manual-token` · `POST /api/instagram/refresh-token`
+- `GET  /api/instagram/oauth-url` · `GET  /api/instagram/callback` (جریان فیسبوک)
+- `POST /api/instagram/disconnect`
 - `POST /api/studio/{caption,ideas,hashtags,reel-script,story-script,poster,upload}`
 - `POST /api/publish/{post,story,reel}` · `GET /api/publish`
 - `GET  /api/messages` · `POST /api/messages/:id/suggest` · `POST /api/messages/:id/reply`

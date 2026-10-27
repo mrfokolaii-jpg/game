@@ -30,3 +30,8 @@ export function isDemoMode() {
 export function graphBase() {
   return `https://graph.facebook.com/${config.meta.graphVersion}`;
 }
+
+/** میزبان Graph برای جریان «ورود مستقیم اینستاگرام» (Instagram Login) */
+export function igGraphBase() {
+  return `https://graph.instagram.com/${config.meta.graphVersion}`;
+}

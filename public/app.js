@@ -92,6 +92,7 @@ async function init() {
   history.replaceState({}, '', location.pathname);
 
   await refreshStatus();
+  await loadSetupCheck();
   await loadAgentMode();
   switchView(state.connection ? 'dashboard' : 'connect');
   setInterval(pollUnread, 30000);
@@ -171,85 +172,123 @@ function needConnection() {
 }
 
 /* ───────────────────────── صفحه اتصال ───────────────────────── */
+const LOGIN_TYPE_LABEL = {
+  instagram: 'ورود مستقیم اینستاگرام',
+  manual: 'توکن دستی (داشبورد Meta)',
+  facebook: 'ورود با Facebook Login',
+};
+
 function renderConnect() {
   if (state.connection) {
-    const p = state.connection.profile;
+    const c = state.connection;
+    const p = c.profile;
     return `
       <div class="card">
         <div class="profile-head">
           <div class="avatar">${esc((p.name || p.username || '؟').slice(0, 1))}</div>
           <div style="flex:1">
             <h2>${esc(p.name || p.username)}</h2>
-            <div class="handle">${esc(p.username)} · نوع حساب: ${esc(p.accountType || 'BUSINESS')}</div>
+            <div class="handle">@${esc(p.username)} · نوع حساب: ${esc(p.accountType || 'BUSINESS')}</div>
             <div class="bio">${esc(p.biography || '')}</div>
           </div>
-          <span class="pill ${state.connection.mode === 'demo' ? 'amber' : 'green'}">
-            ${state.connection.mode === 'demo' ? 'حالت دمو' : 'اتصال رسمی OAuth'}
+          <span class="pill ${c.mode === 'demo' ? 'amber' : 'green'}">
+            ${c.mode === 'demo' ? 'حالت دمو' : esc(LOGIN_TYPE_LABEL[c.loginType] || 'اتصال رسمی')}
           </span>
         </div>
         <div class="grid grid-4 section-gap">
           <div class="stat"><div class="num">${faNum(p.followersCount ?? 0)}</div><div class="lbl">دنبال‌کننده</div></div>
           <div class="stat"><div class="num">${faNum(p.followsCount ?? 0)}</div><div class="lbl">دنبال‌شده</div></div>
           <div class="stat"><div class="num">${faNum(p.mediaCount ?? 0)}</div><div class="lbl">پست</div></div>
-          <div class="stat"><div class="num">${timeAgo(state.connection.connectedAt)}</div><div class="lbl">زمان اتصال</div></div>
+          <div class="stat"><div class="num">${timeAgo(c.connectedAt)}</div><div class="lbl">زمان اتصال</div></div>
         </div>
-        <div class="copy-row" style="margin-top:18px">
+        ${c.mode === 'real' && c.tokenExpiresAt ? `
+        <p class="small section-gap">🔑 اعتبار توکن تا: ${new Date(c.tokenExpiresAt).toLocaleDateString('fa-IR')} —
+        توکن‌های بلندمدت ۶۰ روزه هستند و پیش از انقضا خودکار تمدید می‌شوند.</p>` : ''}
+        <div class="copy-row" style="margin-top:18px;gap:10px">
+          ${c.mode === 'real' && c.loginType !== 'facebook' ? '<button id="refreshTokenBtn" class="btn btn-ghost">تمدید توکن</button>' : ''}
           <button id="disconnectBtn" class="btn btn-danger">قطع اتصال</button>
         </div>
       </div>`;
   }
 
+  const configured = !state.status?.demoMode;
+  const setup = state.setupCheck;
   return `
   <div class="card connect-hero">
     <div class="big-ico">📸</div>
-    <h2>کنتاکتور اتصال‌دهنده اینستاگرام</h2>
-    <p>از طریق رابط رسمی Meta (Facebook Login / OAuth 2.0) حساب تجاری یا سازنده خود را متصل کنید تا
-    تولید محتوا، انتشار، دایرکت هوشمند و جذب مشتری را از همین داشبورد مدیریت کنید.</p>
+    <h2>اتصال واقعی به اینستاگرام</h2>
+    <p>ورود رسمی با یوزرنیم و پسورد <b>خود اینستاگرام</b> (روی سرورهای خود اینستاگرام) — بدون نیاز به حساب فیسبوک.
+    رمز شما هیچ‌وقت وارد این سرور نمی‌شود؛ فقط توکن دسترسی رسمی نگهداری می‌شود.</p>
 
-    ${state.status?.demoMode ? `
-    <div class="security-note" style="background:#eff6ff;border-color:#bfdbfe;margin-bottom:18px">
-      <b style="color:#1e40af">ℹ️ وضعیت فعلی سرور: حالت دمو — دکمه ورود رسمی موقتاً غیرفعال است</b><br>
-      اتصال واقعی <b>شدنی است</b>، اما هنوز اعتبارنامه‌ی Meta App روی سرور تنظیم نشده. به محض قرار گرفتن
-      <span class="mono">META_APP_ID</span> و <span class="mono">META_APP_SECRET</span> در فایل
-      <span class="mono">.env</span> و ری‌استارت سرور، دکمه زیر فعال و اتصال به حساب واقعی ممکن می‌شود.
-      راهنمای کامل قدم‌به‌قدم در <span class="mono">docs/instagram-setup.md</span> آمده است.
-    </div>` : `
+    ${configured ? `
     <div class="security-note" style="background:#dcfce7;border-color:#86efac;margin-bottom:18px">
-      <b style="color:#065f46">✅ اتصال رسمی آماده است</b> — روی دکمه «ورود امن» بزنید تا از طریق فیسبوک
-      وارد حساب اینستاگرام خود شوید و آن را متصل کنید.
+      <b style="color:#065f46">✅ Meta App پیکربندی شده — اتصال واقعی آماده است</b>
+    </div>` : `
+    <div class="security-note" style="background:#eff6ff;border-color:#bfdbfe;margin-bottom:18px">
+      <b style="color:#1e40af">ℹ️ قدم ۱: راه‌اندازی Meta App (یک‌بار، حدود ۱۵ دقیقه)</b><br>
+      تا وقتی <span class="mono">META_APP_ID</span> و <span class="mono">META_APP_SECRET</span> در فایل
+      <span class="mono">.env</span> قرار نگیرد، دکمه‌های ورود غیرفعال‌اند. راهنمای کامل در
+      <span class="mono">docs/instagram-setup.md</span>.
+      ${setup ? `
+      <div class="section-gap" style="line-height:2.2">
+        وضعیت: App ID ${setup.appIdSet ? '✅' : '❌'} · App Secret ${setup.appSecretSet ? '✅' : '❌'}<br>
+        آدرس بازگشت برای ثبت در داشبورد Meta:
+        <div class="mono" style="background:#fff;padding:8px 12px;border-radius:8px;margin-top:6px">${esc(setup.instagramRedirectUri)}</div>
+      </div>` : ''}
     </div>`}
 
-    <div class="grid grid-2" style="text-align:right">
+    <div class="grid grid-3" style="text-align:right">
       <div class="card" style="box-shadow:none;background:#fafaff">
-        <h3>🧪 تجربه سریع در حالت دمو</h3>
-        <p class="hint">بدون نیاز به اعتبارنامه، همه امکانات را با داده‌های نمونه آزمایش کنید.</p>
-        <button id="demoBtn" class="btn btn-primary">اتصال نمونه (دمو)</button>
+        <h3>🟣 ورود مستقیم اینستاگرام</h3>
+        <p class="hint">صفحه رسمی ورود اینستاگرام باز می‌شود؛ با یوزرنیم و پسورد IG خودتان وارد می‌شوید. نیازی به فیسبوک نیست.</p>
+        <button id="igOauthBtn" class="btn btn-primary" ${configured ? '' : 'disabled'}>ورود واقعی با اینستاگرام</button>
       </div>
       <div class="card" style="box-shadow:none;background:#fafaff">
-        <h3>🔐 اتصال رسمی اینستاگرام</h3>
-        <p class="hint">نیازمند Meta App با دسترسی Instagram Graph API.</p>
-        <button id="oauthBtn" class="btn btn-ghost" ${state.status?.demoMode ? 'disabled' : ''}>
-          ورود امن با Facebook Login
-        </button>
-        ${state.status?.demoMode ? '<p class="small" style="margin-top:10px;color:#b91c1c">غیرفعال: Meta App روی سرور پیکربندی نشده است (مراحل پایین را ببینید).</p>' : ''}
+        <h3>🎟️ ورود با توکن دستی</h3>
+        <p class="hint">اگر حساب خودتان است، از داشبورد Meta توکن بسازید و اینجا الصاق کنید (بدون نیاز به دامنه عمومی).</p>
+        <button id="manualTokenBtn" class="btn btn-ghost">ثبت توکن دستی</button>
+      </div>
+      <div class="card" style="box-shadow:none;background:#fafaff">
+        <h3>🧪 حالت دمو</h3>
+        <p class="hint">همه امکانات را فوری با داده نمونه امتحان کنید؛ چیزی روی پیج واقعی منتشر نمی‌شود.</p>
+        <button id="demoBtn" class="btn btn-ghost">اتصال نمونه (دمو)</button>
       </div>
     </div>
 
+    <div id="manualTokenBox" class="card hidden section-gap" style="box-shadow:none;background:#fffbeb;border:1px solid #fde68a">
+      <h3>الصاق توکن بلندمدت</h3>
+      <p class="hint">مسیر تولید: Meta App Dashboard → Instagram → API Setup with Instagram Login → Generate token</p>
+      <textarea id="manualTokenInput" dir="ltr" style="min-height:70px" placeholder="IGQVJY... توکن را اینجا الصاق کنید"></textarea>
+      <div class="copy-row" style="margin-top:10px">
+        <button id="manualTokenSubmit" class="btn btn-primary btn-sm">اتصال با این توکن</button>
+      </div>
+    </div>
+
+    <details class="section-gap">
+      <summary style="cursor:pointer;font-weight:700">🔵 روش جایگزین: ورود با Facebook Login (نیازمند صفحه فیسبوک متصل)</summary>
+      <div class="card section-gap" style="box-shadow:none;background:#fafaff">
+        <p class="hint">اگر حساب اینستاگرام شما به یک صفحه فیسبوک متصل است، این روش هم کار می‌کند.</p>
+        <button id="oauthBtn" class="btn btn-ghost" ${configured ? '' : 'disabled'}>ورود با Facebook Login</button>
+      </div>
+    </details>
+
     <ol class="steps section-gap">
-      <li>در <b>developers.facebook.com</b> یک App از نوع Business بسازید و محصول Instagram Graph API را اضافه کنید.</li>
-      <li>آدرس بازگشت <span class="mono">/api/instagram/callback</span> را در تنظیمات OAuth ثبت کنید.</li>
-      <li>مقادیر <span class="mono">META_APP_ID</span> و <span class="mono">META_APP_SECRET</span> را در فایل <span class="mono">.env</span> قرار دهید.</li>
-      <li>حساب اینستاگرام باید <b>تجاری (Business) یا سازنده (Creator)</b> و به یک صفحه فیسبوک متصل باشد.</li>
-      <li>روی «ورود امن» بزنید و دسترسی‌ها را تأیید کنید تا حساب اینجا متصل شود.</li>
+      <li>حساب اینستاگرام را از تنظیمات اپ به <b>حساب حرفه‌ای (Business یا Creator)</b> تبدیل کنید.</li>
+      <li>در <b>developers.facebook.com</b> یک App از نوع Business بسازید و محصول <b>Instagram → API Setup with Instagram Login</b> را اضافه کنید.</li>
+      <li>آدرس بازگشت بالا را در بخش OAuth Redirect URI ثبت کنید و <span class="mono">META_APP_ID</span> / <span class="mono">META_APP_SECRET</span> را در <span class="mono">.env</span> بگذارید.</li>
+      <li>روی «ورود واقعی با اینستاگرام» بزنید؛ در صفحه رسمی اینستاگرام یوزرنیم/پسورد را وارد و دسترسی‌ها را تأیید کنید.</li>
     </ol>
 
     <div class="security-note">
-      <b>چرا فرم یوزرنیم و پسورد نداریم؟</b><br>
-      اینستاگرام طبق قوانین Meta، ورود با نام کاربری و رمز عبور در اپ‌های شخص ثالث را ممنوع کرده و هر ابزاری که رمز شما را بخواهد
-      (مثل ربات‌های غیررسمی) باعث <b>مسدود شدن دائمی پیج</b> می‌شود. کنتاکتور فقط از مسیر رسمی OAuth استفاده می‌کند؛
-      رمز عبور شما هرگز وارد این سیستم نمی‌شود و توکن‌ها فقط روی همین سرور ذخیره می‌گردند.
+      <b>امنیت ورود:</b> فرم یوزرنیم/پسورد عمداً داخل این سایت نیست — شما مستقیماً روی صفحه رسمی
+      <span class="mono">instagram.com</span> وارد می‌شوید. ابزارهایی که رمز را در فرم خودشان می‌گیرند
+      غیررسمی‌اند و باعث <b>بن دائمی پیج</b> می‌شوند.
     </div>
   </div>`;
+}
+
+async function loadSetupCheck() {
+  try { state.setupCheck = await api('/api/instagram/setup-check'); } catch { state.setupCheck = null; }
 }
 
 function bindConnect() {
@@ -263,11 +302,41 @@ function bindConnect() {
     } catch (err) { toast(err.message, 'error'); resetBtn(e.currentTarget); }
   });
 
-  $('#oauthBtn')?.addEventListener('click', async (e) => {
+  $('#igOauthBtn')?.addEventListener('click', async () => {
+    try {
+      const { url } = await api('/api/instagram/ig-oauth-url');
+      window.location.href = url;
+    } catch (err) { toast(err.message, 'error'); }
+  });
+
+  $('#oauthBtn')?.addEventListener('click', async () => {
     try {
       const { url } = await api('/api/instagram/oauth-url');
       window.location.href = url;
     } catch (err) { toast(err.message, 'error'); }
+  });
+
+  $('#manualTokenBtn')?.addEventListener('click', () => $('#manualTokenBox').classList.toggle('hidden'));
+
+  $('#manualTokenSubmit')?.addEventListener('click', async (e) => {
+    const accessToken = $('#manualTokenInput').value.trim();
+    if (!accessToken) return toast('توکن را الصاق کنید', 'error');
+    loadingBtn(e.currentTarget, 'در حال تأیید توکن…');
+    try {
+      await api('/api/instagram/manual-token', { method: 'POST', body: { accessToken } });
+      await refreshStatus();
+      toast('حساب واقعی متصل شد ✓', 'success');
+      switchView('dashboard');
+    } catch (err) { toast(err.message, 'error'); resetBtn(e.currentTarget); }
+  });
+
+  $('#refreshTokenBtn')?.addEventListener('click', async (e) => {
+    loadingBtn(e.currentTarget, 'در حال تمدید…');
+    try {
+      await api('/api/instagram/refresh-token', { method: 'POST' });
+      await refreshStatus();
+      toast('توکن ۶۰ روز تمدید شد ✓', 'success');
+    } catch (err) { toast(err.message, 'error'); } finally { resetBtn(e.currentTarget); }
   });
 
   $('#disconnectBtn')?.addEventListener('click', async () => {
@@ -275,6 +344,7 @@ function bindConnect() {
     await refreshStatus();
     toast('اتصال قطع شد');
     switchView('connect');
+    if (state.view === 'connect') { await loadSetupCheck(); render(); }
   });
 }
 

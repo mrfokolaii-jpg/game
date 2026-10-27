@@ -1,79 +1,129 @@
-# راهنمای اتصال رسمی اینستاگرام (Meta Developer)
+# راهنمای اتصال واقعی اینستاگرام
 
-این راهنما قدم‌به‌قدم اتصال واقعی کنتاکتور به Instagram Graph API را نشان می‌دهد.
+این پروژه از **Instagram API with Instagram Login** (جریان رسمی متا، عرضه‌شده از جولای ۲۰۲۴) استفاده می‌کند:
+کاربر مستقیماً در صفحه رسمی ورود اینستاگرام با **یوزرنیم و پسورد خود اینستاگرام** وارد می‌شود و
+**نیازی به حساب یا صفحه فیسبوک نیست**.
 
-## ۱) آماده‌سازی حساب اینستاگرام
+> دو روش اتصال در وب‌اپ وجود دارد:
+> **الف) ورود مستقیم اینستاگرام (پیشنهادی)** — مرورگر به `instagram.com` می‌رود و پس از تأیید برمی‌گردد.
+> **ب) توکن دستی** — توکن را یک‌بار از داشبورد Meta می‌سازید و در وب‌اپ الصاق می‌کنید (ساده‌ترین روش برای اتصال حساب خودتان).
+>
+> روش سوم (Facebook Login) هم در کد پشتیبانی می‌شود ولی فقط برای حساب‌های متصل به صفحه فیسبوک لازم است.
 
-1. وارد اپ اینستاگرام شوید → **Settings and privacy → Account type and tools → Switch to professional account**.
-2. نوع **Business** (یا Creator) را انتخاب کنید.
-3. حساب را به یک **صفحه فیسبوک (Facebook Page)** که مدیریتش را دارید متصل کنید
-   (در همان منوی Professional dashboard یا از تنظیمات Page).
+## پیش‌نیازها
 
-## ۲) ساخت Meta App
+- حساب اینستاگرام از نوع **Professional (Business یا Creator)**. تبدیل حساب از داخل اپ:
+  Settings → Account type and tools → Switch to professional account (رایگان).
+- یک App در [developers.facebook.com](https://developers.facebook.com) از نوع **Business**.
+
+---
+
+## روش الف) ورود مستقیم اینستاگرام
+
+### ۱) ساخت Meta App
 
 1. به [developers.facebook.com/apps](https://developers.facebook.com/apps) بروید و **Create App** را بزنید.
 2. نوع اپ را **Business** انتخاب کنید.
-3. در داشبورد اپ، محصول **Instagram Graph API** را با دکمه «Set up» اضافه کنید.
-4. از مسیر **App settings → Basic** مقادیر زیر را بردارید:
+3. در داشبورد اپ، محصول **Instagram** را با **Set up** اضافه کنید.
+4. از منوی کناری Instagram گزینه **API Setup with Instagram Login** را انتخاب کنید
+   (مراقب باشید «with Facebook Login» را انتخاب نکنید).
+5. از **App settings → Basic** این دو مقدار را بردارید:
    - **App ID** → `META_APP_ID`
    - **App Secret** → `META_APP_SECRET`
 
-## ۳) پیکربندی OAuth و آدرس بازگشت
+### ۲) ثبت آدرس بازگشت (Redirect URI)
 
-در بخش **Facebook Login → Settings** (یا Instagram API setup):
+وب‌اپ در صفحه اتصال، آدرس دقیق را نشان می‌دهد (یا از `GET /api/instagram/setup-check` بگیرید).
+این آدرس را در بخش OAuth تنظیمات Instagram Login ثبت کنید:
 
-- **Valid OAuth Redirect URIs:**
-  `https://your-domain.example/api/instagram/callback`
-- برای توسعه لوکال می‌توانید `http://localhost:3000/api/instagram/callback` را هم اضافه کنید.
-- همین دامنه باید دقیقاً در متغیر `APP_URL` فایل `.env` ست شده باشد.
+```
+https://your-domain.example/api/instagram/ig-callback
+```
 
-## ۴) دسترسی‌های درخواستی (Scopes)
+برای توسعه لوکال: `http://localhost:3000/api/instagram/ig-callback`
 
-کنتاکتور هنگام ورود این دسترسی‌ها را می‌خواهد:
+### ۳) پیکربندی سرور
 
-| Scope | کاربرد |
+فایل `.env` را از روی `.env.example` بسازید:
+
+```env
+PORT=3000
+APP_URL=https://your-domain.example
+META_APP_ID=1234567890
+META_APP_SECRET=xxxxxxxx
+META_GRAPH_VERSION=v21.0
+```
+
+سرور را ری‌استارت کنید. در صفحه «اتصال اینستاگرام» بنر سبز «آماده اتصال» ظاهر می‌شود.
+
+### ۴) ورود
+
+روی دکمه **«ورود واقعی با اینستاگرام»** بزنید → به صفحه رسمی `instagram.com` می‌روید →
+یوزرنیم/پسورد اینستاگرام را وارد و دسترسی‌ها را تأیید می‌کنید → به وب‌اپ برمی‌گردید و حساب متصل می‌شود.
+
+پشت صحنه: کد OAuth به توکن یک‌ساعته و سپس **توکن بلندمدت ۶۰ روزه** تبدیل می‌شود؛
+توکن قبل از انقضا به‌صورت خودکار (و با دکمه دستی «تمدید توکن») تازه می‌گردد.
+
+### دسترسی‌های درخواستی (Scopes)
+
+| Scope | کاربرد در کنتاکتور |
 |---|---|
-| `instagram_basic` | خواندن پروفایل و رسانه‌ها |
-| `instagram_content_publish` | انتشار پست/استوری/ریلز |
-| `instagram_manage_messages` | خواندن و پاسخ دایرکت |
-| `instagram_manage_comments` | مدیریت کامنت‌ها |
-| `pages_show_list`, `pages_read_engagement` | دسترسی به صفحه متصل |
-| `pages_manage_metadata` | وب‌هوک‌ها و پیام‌رسانی |
-| `business_management` | دسترسی به دارایی‌های بیزینس |
+| `instagram_business_basic` | پروفایل، رسانه‌ها و اطلاعات پایه |
+| `instagram_business_content_publish` | انتشار پست، استوری و ریلز |
+| `instagram_business_manage_messages` | خواندن و پاسخ دایرکت |
+| `instagram_business_manage_comments` | مدیریت کامنت‌ها |
+| `instagram_business_manage_insights` | آمار و داشبورد |
 
-## ۵) تست در حالت Development
+---
 
-اپ‌های تازه‌ساخته در حالت **Development** هستند؛ در این حالت فقط افرادی که در بخش
-**Roles → Instagram Testers / App Roles** اضافه شده‌اند می‌توانند وارد شوند:
+## روش ب) توکن دستی (سریع‌ترین برای حساب خودتان)
 
-1. حساب اینستاگرام تستی را به‌عنوان **Instagram Tester** دعوت کنید.
-2. دعوت را از داخل همان حساب اینستاگرام (Settings → Apps invites) بپذیرید.
-3. حالا دکمه «ورود امن با Facebook Login» در وب‌اپ کار می‌کند.
+اگر فقط حساب خودتان را وصل می‌کنید، حتی نیازی به دامنه عمومی و Redirect URI نیست:
 
-## ۶) انتشار عمومی (Live Mode)
+1. بعد از ساخت اپ (مراحل ۱ بالا)، به **Instagram → API Setup with Instagram Login** بروید.
+2. در بخش Accounts، حساب اینستاگرام حرفه‌ای خود را اضافه کنید و هنگام درخواست، واردش شوید.
+3. کنار نام حساب **Generate token** را بزنید و توکن بلندمدت را کپی کنید.
+4. در وب‌اپ کنتاکتور → صفحه اتصال → **«ثبت توکن دستی»** → توکن را الصاق کنید.
+5. سرور با فراخوانی `GET /me` صحت توکن را روی API رسمی بررسی و حساب را متصل می‌کند.
 
-برای استفاده مشتریان واقعی:
+> توکن‌های دستی هم ۶۰ روز اعتبار دارند؛ با دکمه «تمدید توکن» در صفحه اتصال قابل تمدیدند
+> (تمدید خودکار داخل فراخوانی‌ها هم انجام می‌شود).
 
-1. از **App Review → Requests** دسترسی‌های بالا را با ویدیوی دموی کاربرد درخواست دهید.
-2. تأیید هویت بیزینس (Business Verification) را کامل کنید.
-3. اپ را از Development به **Live** ببرید.
+---
 
-## ۷) نکات API
+## تست در حالت Development و انتشار عمومی
 
-- **انتشار رسانه:** آدرس تصویر/ویدیو باید عمومی و برای سرورهای Meta قابل دانلود باشد
-  (مثلاً روی S3/CDN). فایل لوکال کار نمی‌کند.
-- محدودیت نرخ: ۵۰ انتشار در هر ۲۴ ساعت برای هر حساب.
-- ویدیو/ریلز بعد از ساخت کانتینر، چند ثانیه در حالت `IN_PROGRESS` است؛ در نسخه production
-  قبل از publish باید وضعیت کانتینر polling شود (کلاینت `graph.js` برای نسخه ساده بلافاصله publish می‌کند).
-- **Hashtag Search:** فقط هشتگ‌هایی را برمی‌گرداند که محتوای عمومی دارند و حداکثر ۳۰ هشتگ در ۷ روز.
-- **دایرکت:** فقط برای حساب‌های Business متصل به Page فعال است و پیام به کاربرانی که در ۲۴ ساعت
-  اخیر به پیج پیام داده‌اند آزاد است (قانون ۲۴ ساعته Meta).
+- اپ تازه‌ساخته در حالت **Development** است؛ فقط حساب‌های اضافه‌شده به‌عنوان tester/owner می‌توانند وارد شوند.
+- برای اتصال حساب مشتریان دیگر، از **App Review** دسترسی‌های `instagram_business_*` را درخواست دهید
+  و در صورت لزوم Business Verification را کامل کنید، سپس اپ را **Live** کنید.
 
-## ۸) عیب‌یابی
+## نکات فنی API
+
+- **انتشار رسانه:** آدرس تصویر/ویدیو باید عمومی و برای سرورهای Meta قابل دانلود باشد (مثلاً S3/CDN)؛
+  فایل لوکال برای انتشار واقعی کار نمی‌کند. سقف انتشار: ۵۰ مورد در ۲۴ ساعت برای هر حساب.
+- **ریلز/ویدیو:** کانتینر رسانه تا آماده‌شدن ویدیو در وضعیت `IN_PROGRESS` است؛ در نسخه production
+  باید وضعیت کانتینر پیش از `media_publish` بررسی (polling) شود.
+- **دایرکت:** پیام ارسالی فقط برای کاربرانی آزاد است که در ۲۴ ساعت اخیر به پیج پیام داده‌اند (قانون Meta).
+- **جستجوی هشتگ:** حداکثر ۳۰ هشتگ در پنجره ۷ روزه برای هر حساب.
+- میزبان‌های رسمی این جریان:
+  - ورود: `https://www.instagram.com/oauth/authorize`
+  - تبادل کد: `https://api.instagram.com/oauth/access_token`
+  - توکن بلندمدت/تمدید: `https://graph.instagram.com/access_token` و `/refresh_access_token`
+  - فراخوانی‌های API: `https://graph.instagram.com/v21.0/...`
+
+## روش ج) Facebook Login (جایگزین)
+
+اگر حساب اینستاگرام به یک صفحه فیسبوک متصل است، جریان قبلی روی `graph.facebook.com` همچنان پشتیبانی می‌شود:
+Redirect URI این روش `https://your-domain.example/api/instagram/callback` است و حساب باید Professional باشد.
+جزئیات scopes آن در `src/instagram/oauth.js` آمده است.
+
+## عیب‌یابی
 
 | خطا | علت محتمل |
 |---|---|
-| `state_mismatch` | کوکی سشن بین شروع OAuth و بازگشت عوض شده؛ جریان را دوباره شروع کنید |
-| `no_instagram_account` | هیچ Page فیسبوکی حساب اینستاگرام Business متصل ندارد |
-| خطای ۴۰۳ در انتشار | scope محتوا تأیید نشده یا حساب Professional نیست |
-| `redirect_uri mismatch` | آدرس بازگشت با ثبت‌شده در Meta App یکی نیست |
+| `state_mismatch` | کوکی سشن بین شروع و بازگشت OAuth عوض شده؛ دوباره تلاش کنید |
+| `fetch failed` هنگام اتصال | سرور به اینترنت دسترسی ندارد یا فایروال جلوی `graph.instagram.com` را گرفته |
+| `redirect_uri mismatch` | آدرس ثبت‌شده در Meta با `APP_URL + /api/instagram/ig-callback` یکی نیست |
+| خطای ۴۰۳ در انتشار | scope مربوطه تأیید نشده یا حساب Professional نیست |
+| توکن بعد از ۶۰ روز از کار افتاد | از دکمه «تمدید توکن» استفاده کنید؛ تمدید باید حداقل ۲۴ ساعت پس از صدور باشد |
+| حساب در لیست انتخاب دیده نمی‌شود | حساب Private است؛ اول به Professional تبدیلش کنید |
