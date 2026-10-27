@@ -206,6 +206,19 @@ function renderConnect() {
     <p>از طریق رابط رسمی Meta (Facebook Login / OAuth 2.0) حساب تجاری یا سازنده خود را متصل کنید تا
     تولید محتوا، انتشار، دایرکت هوشمند و جذب مشتری را از همین داشبورد مدیریت کنید.</p>
 
+    ${state.status?.demoMode ? `
+    <div class="security-note" style="background:#eff6ff;border-color:#bfdbfe;margin-bottom:18px">
+      <b style="color:#1e40af">ℹ️ وضعیت فعلی سرور: حالت دمو — دکمه ورود رسمی موقتاً غیرفعال است</b><br>
+      اتصال واقعی <b>شدنی است</b>، اما هنوز اعتبارنامه‌ی Meta App روی سرور تنظیم نشده. به محض قرار گرفتن
+      <span class="mono">META_APP_ID</span> و <span class="mono">META_APP_SECRET</span> در فایل
+      <span class="mono">.env</span> و ری‌استارت سرور، دکمه زیر فعال و اتصال به حساب واقعی ممکن می‌شود.
+      راهنمای کامل قدم‌به‌قدم در <span class="mono">docs/instagram-setup.md</span> آمده است.
+    </div>` : `
+    <div class="security-note" style="background:#dcfce7;border-color:#86efac;margin-bottom:18px">
+      <b style="color:#065f46">✅ اتصال رسمی آماده است</b> — روی دکمه «ورود امن» بزنید تا از طریق فیسبوک
+      وارد حساب اینستاگرام خود شوید و آن را متصل کنید.
+    </div>`}
+
     <div class="grid grid-2" style="text-align:right">
       <div class="card" style="box-shadow:none;background:#fafaff">
         <h3>🧪 تجربه سریع در حالت دمو</h3>
@@ -215,9 +228,10 @@ function renderConnect() {
       <div class="card" style="box-shadow:none;background:#fafaff">
         <h3>🔐 اتصال رسمی اینستاگرام</h3>
         <p class="hint">نیازمند Meta App با دسترسی Instagram Graph API.</p>
-        <button id="oauthBtn" class="btn btn-ghost" ${state.status?.demoMode ? 'disabled title="META_APP_ID پیکربندی نشده"' : ''}>
+        <button id="oauthBtn" class="btn btn-ghost" ${state.status?.demoMode ? 'disabled' : ''}>
           ورود امن با Facebook Login
         </button>
+        ${state.status?.demoMode ? '<p class="small" style="margin-top:10px;color:#b91c1c">غیرفعال: Meta App روی سرور پیکربندی نشده است (مراحل پایین را ببینید).</p>' : ''}
       </div>
     </div>
 
